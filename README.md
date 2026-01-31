@@ -33,6 +33,10 @@ A dual-mode AI assistant combining everyday Q&A with professional red-team analy
 📝 SUGGESTIONS - Optimization tips
 ```
 
+## web url
+
+https://ricardo-goniac-droopily.ngrok-free.dev/
+
 ## Input
 
 1. logic-auditor
