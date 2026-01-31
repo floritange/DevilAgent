@@ -17,6 +17,14 @@ A dual-mode AI assistant combining everyday Q&A with professional red-team analy
 
 ---
 
+## Homepage
+![homepage](docs/homepage.png)
+
+## Slides
+
+[slides](docs/intro.pdf)
+
+
 ## 🎯 Devil Mode Output
 
 ```
@@ -27,21 +35,22 @@ A dual-mode AI assistant combining everyday Q&A with professional red-team analy
 
 ## Input
 
-# logic-auditor
+1. logic-auditor
 I want to quit my job and start a business. Challenge me.
 
-# code-checker
+2. code-checker
 Check my code:
+```python
 password = input()
 if password == "admin123": login()
-
-# general-reviewer
+```
+3. general-reviewer
 I'm dropping out of college to become an influencer. Roast my plan.
 
-# logic-auditor
+4. logic-auditor
 I want to put all my savings into crypto. Tell me why I'm wrong.
 
-# general-reviewer
+5. general-reviewer
 My app idea: Uber for dogs. Poke holes in it.
 
 
