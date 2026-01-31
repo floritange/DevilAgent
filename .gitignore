@@ -21,8 +21,6 @@ agent_system/SWE/.cache
 *.csv
 *.json
 *.zip
-*.pdf
-*.png
 all_backup/
 results_bak*
 llmqa/
