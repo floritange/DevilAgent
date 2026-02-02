@@ -140,20 +140,12 @@ def _list_skills(source_path: Path) -> list[SkillMetadata]:
 
 
 # ============ Search ============
-def _create_search_tool():
-    """Create DuckDuckGo search tool (free, no API key)"""
-    try:
-        return DDGS()
-    except Exception as e:
-        logger.warning(f"DuckDuckGo init failed: {e}")
-        return None
 
 
-async def _search_web(query: str, tool) -> str:
+async def _search_web(query: str) -> str:
     """Execute single search"""
-    if not tool:
-        return "[Search disabled]"
     try:
+        tool = DDGS()  # Fresh instance each search
         results = await asyncio.to_thread(tool.text, query, region="wt-wt", max_results=5)
         logger.debug(f"Search '{query}': got {len(results) if results else 0} results")
         if not results:
@@ -166,10 +158,10 @@ async def _search_web(query: str, tool) -> str:
         return f"[Search failed: {e}]"
 
 
-async def multi_search(queries: list[str], tool) -> dict[str, str]:
+async def multi_search(queries: list[str]) -> dict[str, str]:
     """Concurrent search for multiple queries"""
     logger.info(f"Multi-search: {queries}")
-    results = await asyncio.gather(*[_search_web(q, tool) for q in queries])
+    results = await asyncio.gather(*[_search_web(q) for q in queries])
     return dict(zip(queries, results))
 
 
@@ -217,16 +209,13 @@ End with: "Want deeper analysis on any issue? You can specify attack direction."
 class DevilAgent:
     def __init__(self, model: str = "gpt-4o-mini", api_key: str = None, base_url: str = None):
         self.llm = ChatOpenAI(model=model, api_key=api_key, base_url=base_url, streaming=True)
-        self.search_tool = _create_search_tool()
         self.skills_metadata: list[SkillMetadata] = []
-        self.devil_mode = False
+        self.devil_mode = True
         self.use_web_search = True  # User-controlled web search toggle
         self.active_skill: SkillMetadata | None = None
         self.history: list = []
         self._load_skills()
-        logger.info(
-            f"DevilAgent init | model={model} | skills={len(self.skills_metadata)} | search_tool={'on' if self.search_tool else 'off'}"
-        )
+        logger.info(f"DevilAgent init | model={model} | skills={len(self.skills_metadata)}")
 
     def _load_skills(self):
         """Load L1 metadata at startup"""
@@ -356,23 +345,27 @@ Check: Do results contain info relevant to TODAY ({today})? If results show old 
         logger.info(
             f"Chat started | input: {user_input[:50]}... | search: {self.use_web_search} | devil: {self.devil_mode}"
         )
+        self.history = []  # Independent session - fresh context each time
         search_context = ""
         search_sources = []
-        if self.search_tool and self.use_web_search:
+        if self.use_web_search:
             yield "[STAGE]Extracting search queries...\n"
             # ReACT search loop: Extract → Search → Validate → Retry if needed
             all_results = {}
             max_iterations = 3
             queries = await self._extract_search_queries(user_input)
+            logger.debug(f"Extracted queries: {queries}")
             iteration_count = 0
             for i in range(max_iterations):
                 if not queries:
+                    logger.debug(f"No queries at iteration {i+1}, breaking")
                     break
                 yield f"[STAGE]Searching: {', '.join(queries)}\n"
                 logger.info(f"ReACT iteration {i+1}: searching {queries}")
-                results = await multi_search(queries, self.search_tool)
+                results = await multi_search(queries)
                 all_results.update(results)
                 iteration_count = i + 1
+                logger.debug(f"Iteration {i+1} got {len(results)} results")
                 yield f"[STAGE]Found {len(results)} results, validating...\n"
                 # Validate search results
                 validation = await self._validate_search(user_input, all_results)

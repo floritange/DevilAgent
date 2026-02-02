@@ -125,7 +125,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135d
 <h1>DevilAgent</h1>
 <div class="controls">
 <button id="searchBtn" class="toggle-btn search-btn on" onclick="toggleSearch()">Web Search</button>
-<button id="modeBtn" class="toggle-btn mode-btn normal" onclick="toggleMode()">Normal Mode</button>
+<button id="modeBtn" class="toggle-btn mode-btn devil" onclick="toggleMode()">Devil Mode</button>
 </div>
 </div>
 <div id="chatBox" class="chat-box"></div>
@@ -141,7 +141,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135d
 </div>
 
 <script>
-var devil = false;
+var devil = true;
 var search = true;
 
 function handleKey(e) {
@@ -347,6 +347,14 @@ function updateStatus() {
     fetch('/api/status')
     .then(function(r) { return r.json(); })
     .then(function(d) {
+        devil = d.devil_mode;
+        var mBtn = document.getElementById('modeBtn');
+        mBtn.className = 'toggle-btn mode-btn ' + (devil ? 'devil' : 'normal');
+        mBtn.textContent = devil ? 'Devil Mode' : 'Normal Mode';
+        search = d.search_enabled;
+        var sBtn = document.getElementById('searchBtn');
+        sBtn.className = 'toggle-btn search-btn ' + (search ? 'on' : 'off');
+        sBtn.textContent = search ? 'Web Search' : 'Offline';
         document.getElementById('status').textContent = 
             'Mode: ' + (d.devil_mode ? 'Devil' : 'Normal') + 
             ' | Search: ' + (d.search_enabled ? 'ON' : 'OFF') + 
